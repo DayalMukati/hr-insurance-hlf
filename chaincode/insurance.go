@@ -34,7 +34,7 @@ func (s *SmartContract) RegisterPolicyholder(ctx contractapi.TransactionContextI
 	if err != nil {
 		return fmt.Errorf("failed to check policyholder existence: %v", err)
 	}
-	if exists != nil {
+	if len(exists) > 0 {
 		return fmt.Errorf("policyholder already exists")
 	}
 
@@ -159,6 +159,25 @@ func (s *SmartContract) GetClaimDetails(ctx contractapi.TransactionContextInterf
 	}
 
 	return &claim, nil
+}
+
+// GetPolicyholderDetails retrieves a policyholder's details
+func (s *SmartContract) GetPolicyholderDetails(ctx contractapi.TransactionContextInterface, policyID string) (*Policyholder, error) {
+	policyholderJSON, err := ctx.GetStub().GetState(policyID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read policyholder state: %v", err)
+	}
+	if policyholderJSON == nil {
+		return nil, fmt.Errorf("policyholder does not exist")
+	}
+
+	var policyholder Policyholder
+	err = json.Unmarshal(policyholderJSON, &policyholder)
+	if err != nil {
+		return nil, err
+	}
+
+	return &policyholder, nil
 }
 
 // Main function to start the chaincode
